@@ -1,16 +1,3 @@
-"""
-#################################
- Fire Segmentation on Fire Class to extract fire pixels from each frame based on the Ground Truth data (masks)
- Train, Validation, Test Data: Items (9) and (10) on https://ieee-dataport.org/open-access/flame-dataset-aerial-imagery-pile-burn-detection-using-drones-uavs
- Keras version: 2.4.0
- Tensorflow Version: 2.3.0
- GPU: Nvidia RTX 2080 Ti
- OS: Ubuntu 18.04
-################################
-"""
-
-#########################################################
-# import libraries
 import os
 import random
 import numpy as np
@@ -29,8 +16,6 @@ from config import config_segmentation
 from config import segmentation_new_size
 from plotdata import plot_segmentation_test
 
-#########################################################
-# Global parameters and definition
 
 METRICS = [
     tf.keras.metrics.AUC(name='auc'),
@@ -46,17 +31,8 @@ METRICS = [
 ]
 
 
-#########################################################
-# Function definition
-
 def segmentation_keras_load():
-    """
-    This function trains a DNN model for the fire segmentation based on the U-NET Structure.
-    Arxiv Link for U-Net: https://arxiv.org/abs/1505.04597
-    :return: None, Save the model and plot the predicted fire masks on the validation dataset.
-    """
-
-    """ Defining general parameters """
+    
     batch_size = config_segmentation.get('batch_size')
     img_size = (segmentation_new_size.get("width"), segmentation_new_size.get("height"))
     img_width = img_size[0]
@@ -66,8 +42,6 @@ def segmentation_keras_load():
     dir_images = "frames/Segmentation/Data/Images"
     dir_masks = "frames/Segmentation/Data/Masks"
     num_classes = config_segmentation.get("num_class")
-
-    """ Start reading data (Frames and masks) and save them in Numpy array for Training, Validation and Test"""
     allfiles_image = sorted(
         [
             os.path.join(dir_images, fname)
@@ -83,7 +57,7 @@ def segmentation_keras_load():
         ]
     )
 
-    print("Number of samples:", len(allfiles_image))
+    print("No of samples:", len(allfiles_image))
     for input_path, target_path in tqdm(zip(allfiles_image[:10], allfiles_mask[:10])):
         print(input_path, "|", target_path)
     total_samples = len(allfiles_mask)
@@ -101,7 +75,7 @@ def segmentation_keras_load():
 
     x_val = np.zeros((len(val_img_paths), img_height, img_width, img_channels), dtype=np.uint8)
     y_val = np.zeros((len(val_mask_paths), img_height, img_width, 1), dtype=np.bool)
-    print('\nLoading training images: ', len(train_img_paths), 'images ...')
+    print('\nLoading training data: ', len(train_img_paths), 'images ...')
     for n, file_ in tqdm(enumerate(train_img_paths)):
         img = tf.keras.preprocessing.image.load_img(file_, target_size=img_size)
         x_train[n] = img
@@ -110,9 +84,8 @@ def segmentation_keras_load():
     for n, file_ in tqdm(enumerate(train_mask_paths)):
         img = tf.keras.preprocessing.image.load_img(file_, target_size=img_size, color_mode="grayscale")
         y_train[n] = np.expand_dims(img, axis=2)
-        # y_train[n] = y_train[n] // 255
 
-    print('\nLoading test images: ', len(val_img_paths), 'images ...')
+    print('\nLoading test data: ', len(val_img_paths), 'images ...')
     for n, file_ in tqdm(enumerate(val_img_paths)):
         img = tf.keras.preprocessing.image.load_img(file_, target_size=img_size)
         x_val[n] = img
@@ -121,9 +94,7 @@ def segmentation_keras_load():
     for n, file_ in tqdm(enumerate(val_mask_paths)):
         img = tf.keras.preprocessing.image.load_img(file_, target_size=img_size, color_mode="grayscale")
         y_val[n] = np.expand_dims(img, axis=-1)
-        # y_val[n] = y_val[n] // 255
 
-    """ Plot some random data: frame and mask (gTruth)"""
     idx_rand = random.randint(0, len(train_img_paths))
     plt.figure(figsize=(13, 5))
     plt.subplot(1, 2, 1)
@@ -135,8 +106,6 @@ def segmentation_keras_load():
     plt.show()
 
     tf.keras.backend.clear_session()
-
-    """ Training the Model ... """
     model = model_unet_kaggle(img_height, img_width, img_channels, num_classes)
     model_fig_file = 'Output/Model_figure/segmentation_model_u_net.png'
     tf.keras.utils.plot_model(model, to_file=model_fig_file, show_shapes=True)
@@ -147,25 +116,14 @@ def segmentation_keras_load():
     results = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=epochs, batch_size=batch_size,
                         callbacks=[early_stopper, checkpoint])
 
-    """ Prediciting mask using the model ... """
     model_predict = tf.keras.models.load_model("FireSegmentation_fifth.h5")
     preds_val = model.predict(x_val, verbose=1)
     preds_val_t = (preds_val > 0.5).astype(np.uint8)
 
-    """ Plotting a few generated masks from the model and compare them with the Ground Truth Masks ... """
     plot_segmentation_test(xval=x_val, yval=y_val, ypred=preds_val_t, num_samples=6)
 
 
 def model_unet_kaggle(img_hieght, img_width, img_channel, num_classes):
-    """
-    This function returns a U-Net Model for this binary fire segmentation images:
-    Arxiv Link for U-Net: https://arxiv.org/abs/1505.04597
-    :param img_hieght: Image Height
-    :param img_width: Image Width
-    :param img_channel: Number of channels in each image
-    :param num_classes: Number of classes based on the Ground Truth Masks
-    :return: A convolutional NN based on Tensorflow and Keras
-    """
     inputs = Input((img_hieght, img_width, img_channel))
     s = Lambda(lambda x: x / 255)(inputs)
 
