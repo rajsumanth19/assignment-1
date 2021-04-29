@@ -1,18 +1,3 @@
-"""
-#################################
- Training phase after demonstration: This module uses Keras and Tensor flow to train the image classification problem
- for the labeling fire and non-fire data based on the aerial images.
- Training and Validation Data: Item 7 on https://ieee-dataport.org/open-access/flame-dataset-aerial-imagery-pile-burn-detection-using-drones-uavs
- Keras version: 2.4.0
- Tensorflow Version: 2.3.0
- GPU: Nvidia RTX 2080 Ti
- OS: Ubuntu 18.04
-#################################
-"""
-
-#########################################################
-# import libraries
-
 import os.path
 import tensorflow as tf
 from tensorflow import keras
@@ -27,8 +12,6 @@ from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense, Flatten, GlobalAveragePooling2D
 
-#########################################################
-# Global parameters and definition
 
 data_augmentation = keras.Sequential(
         [
@@ -55,34 +38,16 @@ METRICS = [
 ]
 
 
-#########################################################
-# Function definition
-
 def train_keras():
-    """
-    This function train a DNN model based on Keras and Tensorflow as a backend. At first, the directory of Fire and
-    Non_Fire images should be defined for the model, then the model is defined, compiled and fitted over the training
-    and validation set. At the end, the models is saved based on the *.h5 parameters and weights. Training accuracy and
-    loss are demonstrated at the end of this function.
-    :return: None, Save the trained model and plot accuracy and loss on train and validation dataset.
-    """
-    # This model is implemented based on the guide in Keras (Xception network)
-    # https://keras.io/examples/vision/image_classification_from_scratch/
-    print(" --------- Training --------- ")
-
     dir_fire = 'frames/Training/Fire/'
     dir_no_fire = 'frames/Training/No_Fire/'
-
-    # 0 is Fire and 1 is NO_Fire
     fire = len([name for name in os.listdir(dir_fire) if os.path.isfile(os.path.join(dir_fire, name))])
     no_fire = len([name for name in os.listdir(dir_no_fire) if os.path.isfile(os.path.join(dir_no_fire, name))])
     total = fire + no_fire
     weight_for_fire = (1 / fire) * total / 2.0
     weight_for_no_fire = (1 / no_fire) * total / 2.0
-    # class_weight = {0: weight_for_fire, 1: weight_for_no_fire}
-
-    print("Weight for class fire : {:.2f}".format(weight_for_fire))
-    print("Weight for class No_fire : {:.2f}".format(weight_for_no_fire))
+    print("Weight for fire : {:.2f}".format(weight_for_fire))
+    print("Weight for No_fire : {:.2f}".format(weight_for_no_fire))
 
     train_ds = tf.keras.preprocessing.image_dataset_from_directory(
         "frames/Training", validation_split=0.2, subset="training", seed=1337, image_size=image_size,
@@ -119,10 +84,6 @@ def train_keras():
     model = make_model_VGG16()
 
     
-
-
-
-
     keras.utils.plot_model(model, show_shapes=True)
 
     callbacks = [keras.callbacks.ModelCheckpoint("save_at_{epoch}.h5"), ]
@@ -134,10 +95,7 @@ def train_keras():
     if save_model_flag:
         file_model_fire = 'Output/Models/model_fire_resnet_weighted_40_no_metric_simple'
         model.save(file_model_fire)
-    #if Config_classification.get('TrainingPlot'):
-    #   plot_training(res_fire, 'KerasModel', layers_len)
-
-    # Prediction on one sample frame from the test set
+    
     img = keras.preprocessing.image.load_img(
         "frames/Training/Fire/resized_frame0.jpg", target_size=image_size)
     img_array = keras.preprocessing.image.img_to_array(img)
@@ -147,46 +105,30 @@ def train_keras():
     print("This image is %.2f percent Fire and %.2f percent No Fire." % (100 * (1 - score), 100 * score))
 
 def make_model_VGG16():
-    base_model = VGG16(input_shape=(224, 224, 3),  # Shape of our images
-                       include_top=False,  # Leave out the last fully connected layer
+    base_model = VGG16(input_shape=(224, 224, 3),  
+                       include_top=False,  
                        weights='imagenet')
     for layer in base_model.layers:
         layer.trainable = False
-    # Flatten the output layer to 1 dimension
     x = layers.Flatten()(base_model.output)
-
-    # Add a fully connected layer with 512 hidden units and ReLU activation
     x = layers.Dense(512, activation='relu')(x)
-
-    # Add a dropout rate of 0.5
     x = layers.Dropout(0.5)(x)
 
-    # Add a final sigmoid layer for classification
     x = layers.Dense(1, activation='sigmoid')(x)
 
     return tf.keras.models.Model(base_model.input, x)
 
 
 def make_model_Xception(input_shape, num_classes):
-    """
-    This function define the DNN Model based on the Keras example.
-    :param input_shape: The requested size of the image
-    :param num_classes: In this classification problem, there are two classes: 1) Fire and 2) Non_Fire.
-    :return: The built model is returned
-    """
     inputs = keras.Input(shape=input_shape)
-    # x = data_augmentation(inputs)  # 1) First option
-    x = inputs  # 2) Second option
+    x = inputs  
 
     x = layers.experimental.preprocessing.Rescaling(1.0 / 255)(x)
-    # x = layers.Conv2D(32, 3, strides=2, padding="same")(x)
     x = layers.Conv2D(8, 3, strides=2, padding="same")(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation("relu")(x)
 
     previous_block_activation = x
-
-    # for size in [128, 256, 512, 728]:
     for size in [8]:
 
         x = layers.SeparableConv2D(size, 3, padding="same")(x)
