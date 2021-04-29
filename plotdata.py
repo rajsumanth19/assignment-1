@@ -1,10 +1,3 @@
-"""
-#################################
-# plot functions for visualization
-#################################
-"""
-#########################################################
-# import libraries
 
 import random
 import pickle
@@ -13,9 +6,6 @@ import numpy as np
 from skimage.io import imshow
 import matplotlib.pyplot as plt
 
-
-#########################################################
-# Function definition
 
 def plot_training(result, type_model, layers_len):
     (fig, ax) = plt.subplots(2, 1, figsize=(13, 13))
@@ -61,8 +51,7 @@ def plot_metrics(history):
         ax[n].plot(history.epoch, history.history['val_'+metric], linewidth=2.5, linestyle='--', marker='x',
                    markersize='10', color='blue', label='Val')
         ax[n].grid(True)
-        # plt.xlabel('Epoch')
-        # plt.ylabel(name)
+       
         ax[n].set_xlabel("Epoch", fontsize=14, fontweight="bold")
         ax[n].set_ylabel(name, fontsize=14, fontweight="bold")
         ax[n].legend(prop={'size': 14, 'weight': 'bold'}, loc='best')
@@ -76,10 +65,6 @@ def plot_metrics(history):
 
 
 def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
-    """
-        This function prints and plots the confusion matrix.
-        Normalization can be applied by setting `normalize=True`.
-    """
     fig_conf = plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
