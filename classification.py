@@ -1,16 +1,3 @@
-"""
-#################################
- Classification after training the Model, modules and methods in this file evaluate the performance of the trained
- model over the test dataset
- Test Data: Item (8) on https://ieee-dataport.org/open-access/flame-dataset-aerial-imagery-pile-burn-detection-using-drones-uavs 
- Tensorflow Version: 2.3.0
- GPU: Nvidia RTX 2080 Ti
- OS: Ubuntu 18.04
-################################
-"""
-#########################################################
-# import libraries
-
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -24,15 +11,7 @@ image_size = (new_size.get('width'), new_size.get('height'))
 epochs = Config_classification.get('Epochs')
 
 
-#########################################################
-# Function definition
-
 def classify():
-    """
-    This function load the trained model from the previous task and evaluates the performance of that over the test
-    data set.
-    :return: None, Plot the Confusion matrix for the test data on the binary classification
-    """
     test_ds = tf.keras.preprocessing.image_dataset_from_directory(
         "frames/Test", seed=1337, image_size=image_size, batch_size=batch_size, shuffle=True
     )
