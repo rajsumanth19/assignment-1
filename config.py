@@ -1,8 +1,3 @@
-"""
-#################################
-# Configuration File
-#################################
-"""
 pathVid_fire = 'video/2020_01_16_10_27_15.mp4'
 pathVid_LakeMary = 'video/Matrice 200_phone_lakemary_X4S/Final.mp4'
 pathVid_test_Fire = 'video/Testdata/fire.mp4'
@@ -26,8 +21,5 @@ Config_classification = {"batch_size": 32, 'Save_Model': True, 'Epochs': 10, "Tr
 config_segmentation = {"batch_size": 16, 'Save_Model': False, 'Epochs': 30, "TrainingPlot": False,
                        "train_set_ratio": 0.85, "val_set_ratio": 0.15, "num_class": 2, "CHANNELS": 3}
 Mode = 'Training'
-# Different Modes {"Fire", "Lake_Mary", "Test_Frame", "Training", "Classification", "Rename", "Segmentation",
-#                   "Scheduling"}
-
 config_uav = {"Num_uav": 2, "Init_flight_time": 40, 'Observation_time': 2, 'Observation_interval': 20,
               "Charge_time": 35, "Speed": 150, "Num_pile_fire": 5, "Event": 100, "uav_limit": 10}
